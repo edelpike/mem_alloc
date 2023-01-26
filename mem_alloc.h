@@ -4,17 +4,19 @@
  * \details Contains function declarations for memory allocator
  * \author  Evgenii Shchukin
  * \version 01.00
- * \date    25.01.2023
+ * \date    26.01.2023
 */
 #ifndef _MEM_ALLOC_H_INCLUDED_
 #define _MEM_ALLOC_H_INCLUDED_
 
 /*-------------------PARAMETERS----------*/
-#define MEM_POOL_SIZE   256  // Memory pool size in bytes
-#define MEM_BLK_SIZE    16   // Memory block size in bytes
+#define MEM_POOL_SIZE       256  // Memory pool size in bytes
+#define MEM_BLK_SIZE        16   // Memory block size in bytes
 /*-------------------ERRORS--------------*/
-#define ERR_NONE        0    // no errors
-#define ERR_OUT_MEM     1    // not enough memory error
+#define ERR_NONE            0    // no errors
+#define ERR_OUT_MEM         1    // not enough memory error
+#define ERR_TEST_INIT       2    // init memory allocation test error
+#define ERR_TEST_MAL_FREE   3    // init memory allocation test error
 /*-------------------MACROS--------------*/
 #define NULL_PTR ((void *)0)
 
@@ -58,6 +60,24 @@ void mem_free(MemPool_T *pMem, void *pBlk);
  * \return free memory blocks number
  */
 unsigned int mem_avail(MemPool_T *pMem);
+
+/*!
+ * \brief Memory allocator initialization test
+ * \details Tests memory pool for blocks number and memory 
+ * \param[in] pMem - memory pool structure pointer
+ * \param[in] pBuf - static memory pool pointer
+ * \return [ERR_NONE, ERR_TEST_INIT]
+ */
+int mem_alloc_init_test(MemPool_T * pMem, void * pBuf);
+
+/*!
+ * \brief Memory allocate and free tests
+ * \details Tests memory pool for allocation and free
+ * \param[in] pMem - memory pool structure pointer
+ * \param[in] pBuf - static memory pool pointer
+ * \return [ERR_NONE, ERR_TEST_MAL_FREE]
+ */
+int mem_malloc_free_test(MemPool_T *pMem, void * pBuf);
 
 #endif /* _MEM_ALLOC_H_INCLUDED_ */
 

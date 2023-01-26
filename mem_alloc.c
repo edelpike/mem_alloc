@@ -4,7 +4,7 @@
  * \details This module is used for memory allocation from static memory pool
  * \author  Evgenii Shchukin
  * \version 01.00
- * \date    25.01.2023
+ * \date    26.01.2023
  * \warning To use with preemptive multitasking RTOS for each task create separate static memory pool by mem_alloc_init() function
  */
 #include "mem_alloc.h"
@@ -23,7 +23,7 @@ int mem_alloc_init (MemPool_T * pMem, void * pBuf)
     void** ppLink;
     unsigned char * pucBlk;
 	
-	if((MEM_POOL_SIZE <= sizeof(NULL_PTR)) || (MEM_POOL_SIZE < MEM_BLK_SIZE))
+	if((MEM_BLK_SIZE < sizeof(NULL_PTR)) || (MEM_POOL_SIZE < MEM_BLK_SIZE))
 	{
 	    return ERR_OUT_MEM;
 	}
@@ -103,6 +103,122 @@ unsigned int mem_avail (MemPool_T *pMem)
 	return pMem->uiBlkFree;
 }
 
+/*!
+ * \brief Memory allocator initialization test
+ * \details Tests memory pool for blocks number and memory 
+ * \param[in] pMem - memory pool structure pointer
+ * \param[in] pBuf - static memory pool pointer
+ * \return [ERR_NONE, ERR_TEST_INIT]
+ */
+int mem_alloc_init_test (MemPool_T * pMem, void * pBuf)
+{
+    unsigned int i;
+	unsigned int mem_sum;        // memory summ in bytes
+	unsigned int uiBlkNum;       // memory blocks number
+    void** ppLink;
+    void * pBlk;
+	
+	uiBlkNum = MEM_POOL_SIZE / MEM_BLK_SIZE;
+	
+	if(uiBlkNum == 0)
+	{
+		return ERR_TEST_INIT;
+	}
+	
+	if(uiBlkNum == 1)
+	{
+		if(pMem->pFreeMem == pBuf)
+		{
+			return ERR_NONE;
+		}
+		else
+		{
+			return ERR_TEST_INIT;
+		}
+	}
+	
+	ppLink  = (void **)pMem->pFreeMem;
+	i       = 0;
+	pBlk    = pBuf;
+	mem_sum = 0;
+	
+	do
+    {
+        if(*ppLink)       // in the last block we have pointer to the next block == NULL
+        {
+		    mem_sum += *ppLink - pBlk;
+        }
+		pBlk     = *ppLink;
+        ppLink   = (void **)(*ppLink);
+		
+		i++;
+		if(i > uiBlkNum)
+		{
+			return 1;
+		}
+    }
+    while(pBlk);
+    
+    if((i == uiBlkNum) && (mem_sum == MEM_POOL_SIZE - MEM_BLK_SIZE))
+    {
+        return ERR_NONE;
+    }
+    else
+    {
+        return ERR_TEST_INIT;
+    }
+}
+
+/*!
+ * \brief Memory allocate and free tests
+ * \details Tests memory pool for allocation and free
+ * \param[in] pMem - memory pool structure pointer
+ * \param[in] pBuf - static memory pool pointer
+ * \return [ERR_NONE, ERR_TEST_MAL_FREE]
+ */
+int mem_malloc_free_test (MemPool_T *pMem, void * pBuf)
+{
+    int i;
+	unsigned char * pBlk, * pBlkCpy;
+	void * pLink, * pLinkBad, * pLinkOk;
+
+    pLink = *(void **)pBuf;
+
+    // Allocate first memory block
+	pBlk    = mem_malloc(pMem);
+	if(pBlk == NULL_PTR)
+	{
+	    return ERR_TEST_MAL_FREE;
+	}
+	pBlkCpy = pBlk;
+	
+	// Fill first memory block
+	for(i = 0; i < MEM_BLK_SIZE; i++)
+    {
+        *pBlkCpy += i;
+        pBlkCpy++;
+    }
+    
+    pLinkBad = *(void **)pBuf;
+    
+    if(pLink == pLinkBad)
+    {
+        return ERR_TEST_MAL_FREE;
+    }
+    
+    // Free first memory block
+    mem_free(pMem, pBlk);
+    
+    pLinkOk = *(void **)pBuf;
+    
+    // We must get the same link as before allocation memory block
+    if(pLink != pLinkOk)
+    {
+        return ERR_TEST_MAL_FREE;
+    }
+    
+    return ERR_NONE;
+}
 /******************* (C) COPYRIGHT 2023  *********
 *
 * END OF FILE mem_alloc.c */
