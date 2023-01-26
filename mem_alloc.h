@@ -16,7 +16,7 @@
 #define ERR_NONE            0    // no errors
 #define ERR_OUT_MEM         1    // not enough memory error
 #define ERR_TEST_INIT       2    // init memory allocation test error
-#define ERR_TEST_MAL_FREE   3    // init memory allocation test error
+#define ERR_TEST_MAL_FREE   3    // memory allocate and free tests error
 /*-------------------MACROS--------------*/
 #define NULL_PTR ((void *)0)
 
